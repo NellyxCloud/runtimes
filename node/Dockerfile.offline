@@ -1,0 +1,26 @@
+# Node runtime on the Bun base, for offline verification on this host.
+# Production publishes node/Dockerfile (node:22-bookworm-slim); this variant
+# exists so the image can be built and smoke-tested without pulling from
+# Docker Hub, which is unreachable here.
+#
+# The Bun image already ships uid 1000 (`bun`), which is exactly what the agent
+# forces on every service, so no user is created here.
+ARG BUN_VERSION=1.4.2
+FROM oven/bun:${BUN_VERSION}-debian
+
+RUN mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
+ && chown -R 1000:1000 /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
+ && chmod 1777 /tmp/nellyx
+
+COPY --chmod=0755 shared/entrypoint.sh /usr/local/bin/nellyx-entrypoint
+
+ENV APP_DIR=/home/nellyx/app \
+    HOME=/home/nellyx \
+    NODE_ENV=production \
+    NPM_CONFIG_UPDATE_NOTIFIER=false
+
+WORKDIR /home/nellyx/app
+USER 1000:1000
+EXPOSE 3000
+
+ENTRYPOINT ["/usr/local/bin/nellyx-entrypoint"]

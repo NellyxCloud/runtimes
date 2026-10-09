@@ -1,0 +1,23 @@
+{
+  "id": "python-3.14",
+  "version": "3.14",
+  "type": "SERVER",
+  "image": "ghcr.io/nellyxcloud/runtimes:python-3.14",
+  "entrypoint": {
+    "cmd": "/usr/local/bin/nellyx-entrypoint",
+    "args": []
+  },
+  "env": {
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "filesystem": {
+    "workdir": "/home/nellyx/app",
+    "writable": true
+  },
+  "network": {
+    "exposePort": true,
+    "defaultPort": 8000
+  },
+  "securityProfile": "docker-hardened"
+}

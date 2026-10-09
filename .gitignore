@@ -1,0 +1,4 @@
+# Nothing is built inside the repo: images are built by CI and by
+# `docker build -f <runtime>/Dockerfile .` from the root.
+*.log
+.DS_Store

@@ -1,0 +1,22 @@
+{
+  "id": "deno-2.0",
+  "version": "2.0",
+  "type": "SERVER",
+  "image": "ghcr.io/nellyxcloud/runtimes:deno-2.0",
+  "entrypoint": {
+    "cmd": "/usr/local/bin/nellyx-entrypoint",
+    "args": []
+  },
+  "env": {
+    "DENO_NO_UPDATE_CHECK": "1"
+  },
+  "filesystem": {
+    "workdir": "/home/nellyx/app",
+    "writable": true
+  },
+  "network": {
+    "exposePort": true,
+    "defaultPort": 8000
+  },
+  "securityProfile": "docker-hardened"
+}

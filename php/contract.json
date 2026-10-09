@@ -1,0 +1,24 @@
+{
+  "id": "php-8.3",
+  "version": "8.3",
+  "type": "SERVER",
+  "image": "ghcr.io/nellyxcloud/runtimes:php-8.3",
+  "entrypoint": {
+    "cmd": "/usr/local/bin/nellyx-entrypoint",
+    "args": []
+  },
+  "env": {},
+  "filesystem": {
+    "workdir": "/home/nellyx/app",
+    "writable": true
+  },
+  "network": {
+    "exposePort": true,
+    "defaultPort": 8080
+  },
+  "securityProfile": "docker-hardened",
+  "stack": {
+    "nginx": true,
+    "fpm": true
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "node-22",
+  "version": "22",
+  "type": "SERVER",
+  "image": "ghcr.io/nellyxcloud/runtimes:node-22",
+  "entrypoint": {
+    "cmd": "/usr/local/bin/nellyx-entrypoint",
+    "args": []
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "NPM_CONFIG_UPDATE_NOTIFIER": "false"
+  },
+  "filesystem": {
+    "workdir": "/home/nellyx/app",
+    "writable": true
+  },
+  "network": {
+    "exposePort": true,
+    "defaultPort": 3000
+  },
+  "securityProfile": "docker-hardened"
+}

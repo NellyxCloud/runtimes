@@ -1,0 +1,23 @@
+{
+  "id": "go-1.23",
+  "version": "1.23",
+  "type": "SERVER",
+  "image": "ghcr.io/nellyxcloud/runtimes:go-1.23",
+  "entrypoint": {
+    "cmd": "/usr/local/bin/nellyx-entrypoint",
+    "args": []
+  },
+  "env": {
+    "CGO_ENABLED": "0",
+    "GOFLAGS": "-buildvcs=false"
+  },
+  "filesystem": {
+    "workdir": "/home/nellyx/app",
+    "writable": true
+  },
+  "network": {
+    "exposePort": true,
+    "defaultPort": 8080
+  },
+  "securityProfile": "docker-hardened"
+}

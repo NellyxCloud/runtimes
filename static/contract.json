@@ -1,0 +1,27 @@
+{
+  "id": "static-1.0",
+  "version": "1.0",
+  "type": "STATIC",
+  "image": "ghcr.io/nellyxcloud/runtimes:static-1.0",
+  "entrypoint": {
+    "cmd": "/usr/local/bin/nellyx-entrypoint",
+    "args": []
+  },
+  "env": {},
+  "filesystem": {
+    "workdir": "/home/nellyx/app",
+    "writable": true
+  },
+  "network": {
+    "exposePort": true,
+    "defaultPort": 8080
+  },
+  "securityProfile": "docker-hardened",
+  "rules": {
+    "noExecution": true,
+    "onlyFiles": true
+  },
+  "stack": {
+    "nginx": true
+  }
+}
