@@ -20,7 +20,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  OWNER: NellyxCloud
+  # Docker rejects uppercase in a repository name, and the agent's contracts
+  # already pull from ghcr.io/nellyxcloud/runtimes.
+  OWNER: nellyxcloud
   IMAGE_PREFIX: runtimes
 
 jobs:
