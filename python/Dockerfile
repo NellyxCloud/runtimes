@@ -2,10 +2,8 @@ ARG TAG_VERSION=3.14
 ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}-slim-bookworm
 
-RUN groupadd -r -g 1000 nellyx \
- && useradd -r -u 1000 -g nellyx -d /home/nellyx -s /bin/sh nellyx \
- && mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
- && chown -R nellyx:nellyx /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
+RUN mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
+ && chown -R 1000:1000 /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
  && chmod 1777 /tmp/nellyx
 
 # The agent's python allowlist (service.ts) accepts pip, uvicorn, gunicorn,

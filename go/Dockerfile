@@ -5,10 +5,8 @@ FROM golang:${GO_VERSION}-bookworm
 # The go allowlist in the agent is `go`, `go build`, `go run`, `go test`, so the
 # toolchain has to be present: this image compiles, it does not only run a
 # prebuilt binary.
-RUN groupadd -r -g 1000 nellyx \
- && useradd -r -u 1000 -g nellyx -d /home/nellyx -s /bin/sh nellyx \
- && mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
- && chown -R nellyx:nellyx /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
+RUN mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
+ && chown -R 1000:1000 /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
  && chmod 1777 /tmp/nellyx \
  && chmod -R a+rX /usr/local/go
 

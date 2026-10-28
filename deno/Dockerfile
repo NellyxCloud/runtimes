@@ -6,10 +6,8 @@ FROM denoland/deno:${DENO_VERSION}
 
 # Deno's image ships as a nonroot user already, but the agent forces
 # 1000:1000, so the ids have to line up.
-RUN groupadd -r -g 1000 nellyx \
- && useradd -r -u 1000 -g nellyx -d /home/nellyx -s /bin/sh nellyx \
- && mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
- && chown -R nellyx:nellyx /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
+RUN mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
+ && chown -R 1000:1000 /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
  && chmod 1777 /tmp/nellyx
 
 COPY --chmod=0755 shared/entrypoint.sh /usr/local/bin/nellyx-entrypoint

@@ -5,10 +5,8 @@ FROM oven/bun:${BUN_VERSION}-debian
 
 # uid 1000:1000, same reason as the node image: the agent runs every service as
 # that uid and mounts the host workspace over /home/nellyx/app.
-RUN groupadd -r -g 1000 nellyx \
- && useradd -r -u 1000 -g nellyx -d /home/nellyx -s /bin/sh nellyx \
- && mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
- && chown -R nellyx:nellyx /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
+RUN mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
+ && chown -R 1000:1000 /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
  && chmod 1777 /tmp/nellyx
 
 COPY --chmod=0755 shared/entrypoint.sh /usr/local/bin/nellyx-entrypoint
