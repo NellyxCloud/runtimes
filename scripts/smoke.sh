@@ -9,6 +9,9 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 start="$tmpdir/start.sh"
 
+port=3000
+[ "$runtime" = "static" ] && port=8080
+
 case "$runtime" in
   node)
     cat >"$start" <<'EOF'
@@ -69,12 +72,12 @@ chmod +x "$start"
 docker run -d --name smoke \
   -v "$start:/tmp/start.sh:ro" \
   -e "START_COMMAND=sh /tmp/start.sh" \
-  -e "PORT=3000" \
-  -p 127.0.0.1:3000:3000 \
+  -e "PORT=$port" \
+  -p 127.0.0.1:$port:$port \
   "$image"
 
 for _ in $(seq 1 45); do
-  if curl -fsS http://127.0.0.1:3000 >/dev/null 2>&1; then
+  if curl -fsS http://127.0.0.1:$port >/dev/null 2>&1; then
     echo "$runtime responds"
     docker rm -f smoke >/dev/null
     exit 0
