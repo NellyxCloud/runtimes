@@ -17,6 +17,9 @@ RUN apk add --no-cache su-exec \
 COPY --chmod=0755 shared/entrypoint.sh /usr/local/bin/nellyx-entrypoint
 COPY static/nginx.conf /etc/nginx/conf.d/default.conf
 
+# The image runs as uid 1000, so the pid file must live on a writable path.
+RUN sed -i '1i pid /tmp/nginx.pid;' /etc/nginx/nginx.conf
+
 ENV APP_DIR=/home/nellyx/app
 
 WORKDIR /home/nellyx/app

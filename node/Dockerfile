@@ -4,14 +4,16 @@
 ARG TAG_VERSION=22
 ARG NODE_VERSION=22
 ARG BUN_VERSION=1
-FROM node:${NODE_VERSION}-bookworm-slim
 
-COPY --from=oven/bun:${BUN_VERSION}-debian /usr/local/bin/bun /usr/local/bin/bun
+FROM oven/bun:${BUN_VERSION}-debian AS bunsource
+
+FROM node:${NODE_VERSION}-bookworm-slim
+COPY --from=bunsource /usr/local/bin/bun /usr/local/bin/bun
 
 # The agent runs every container as 1000:1000 and mounts the host workspace at
 # /home/nellyx/app, so the image needs that uid to own the workdir and the log
 # directory. Without it the service starts and then cannot write anything.
-RUN groupadd -r nellyx 1000 \
+RUN groupadd -r -g 1000 nellyx \
  && useradd -r -u 1000 -g nellyx -d /home/nellyx -s /bin/sh nellyx \
  && mkdir -p /home/nellyx/app /var/log/nellyx /tmp/nellyx /var/lib/nellyx/builds \
  && chown -R nellyx:nellyx /home/nellyx /var/log/nellyx /tmp/nellyx /var/lib/nellyx \
