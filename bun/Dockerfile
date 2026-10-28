@@ -1,4 +1,6 @@
-ARG BUN_VERSION=1.4.2
+# TAG_VERSION is the published tag; BUN_VERSION floats within the 1.x line.
+ARG TAG_VERSION=1
+ARG BUN_VERSION=1
 FROM oven/bun:${BUN_VERSION}-debian
 
 # uid 1000:1000, same reason as the node image: the agent runs every service as

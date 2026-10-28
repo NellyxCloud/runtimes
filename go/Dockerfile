@@ -1,3 +1,4 @@
+ARG TAG_VERSION=1.23
 ARG GO_VERSION=1.23
 FROM golang:${GO_VERSION}-bookworm
 

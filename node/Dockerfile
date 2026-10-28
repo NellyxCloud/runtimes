@@ -1,8 +1,9 @@
+# The workflow derives the published tag from TAG_VERSION, so the contract tag
+# (node-22) stays stable while NODE_VERSION and BUN_VERSION float to the latest
+# patch release within the line on every weekly refresh.
+ARG TAG_VERSION=22
 ARG NODE_VERSION=22
-# The workflow derives the published tag from the first VERSION arg, so
-# NODE_VERSION stays first. Bun lives in this image because the agent maps the
-# `bun` runtime to node-22 and the panel's default template runs `bun run ...`.
-ARG BUN_VERSION=1.4.2
+ARG BUN_VERSION=1
 FROM node:${NODE_VERSION}-bookworm-slim
 
 COPY --from=oven/bun:${BUN_VERSION}-debian /usr/local/bin/bun /usr/local/bin/bun

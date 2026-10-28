@@ -1,3 +1,4 @@
+ARG TAG_VERSION=8.3
 ARG PHP_VERSION=8.3
 FROM php:${PHP_VERSION}-cli-bookworm
 

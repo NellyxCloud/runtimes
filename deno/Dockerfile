@@ -1,4 +1,7 @@
-ARG DENO_VERSION=2.0
+# TAG_VERSION is the published tag; DENO_VERSION is resolved by the workflow to
+# the latest 2.x release on every refresh (the registry has no floating 2.x tag).
+ARG TAG_VERSION=2.0
+ARG DENO_VERSION=2.9.8
 FROM denoland/deno:${DENO_VERSION}
 
 # Deno's image ships as a nonroot user already, but the agent forces

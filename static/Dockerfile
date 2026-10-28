@@ -1,5 +1,6 @@
-ARG STATIC_VERSION=1.0
-ARG NGINX_VERSION=1.27
+# TAG_VERSION is the published tag; NGINX_VERSION tracks the stable line.
+ARG TAG_VERSION=1.0
+ARG NGINX_VERSION=stable
 FROM nginx:${NGINX_VERSION}-alpine
 
 # Static sites are served, never executed: the contract sets
@@ -14,7 +15,7 @@ RUN apk add --no-cache su-exec \
  && chmod 1777 /tmp/nellyx
 
 COPY --chmod=0755 shared/entrypoint.sh /usr/local/bin/nellyx-entrypoint
-COPY static/nginx.conf /etc/nginx/templates/default.conf.template
+COPY static/nginx.conf /etc/nginx/conf.d/default.conf
 
 ENV APP_DIR=/home/nellyx/app
 

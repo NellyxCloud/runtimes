@@ -1,27 +1,30 @@
 name: publish runtimes
 
-# One image per runtime, tagged <runtime>-<version>.
+# One image per runtime, tagged <runtime>-<line> (node-22, python-3.14, ...).
 #
-# Triggered by hand and on tag pushes. A rebuild of the same tag is deliberately
-# not automatic: a node that pulls `node-22` should get the same bits on every
-# host, so changing an image means publishing `node-22.1` and keeping `node-22`
-# pointed at the last known-good build.
+# The line is fixed by the agent's contract tags, but the image is rebuilt on a
+# weekly schedule so the base image (node:22-bookworm-slim, python:3.14-slim,
+# ...) floats to the latest patch release within the line. Moving the tag is
+# deliberate: a node that pulls node-22 picks up security patches on its next
+# pull instead of requiring a commit per release.
+#
+# Manual dispatch and tag pushes still rebuild everything. Deno has no floating
+# major tag, so its version is resolved against the registry at build time.
 
 on:
   workflow_dispatch:
-    inputs:
-      runtimes:
-        description: "Comma separated runtimes to build (blank = all)"
-        required: false
-        default: ""
+  schedule:
+    - cron: "17 4 * * 1"
   push:
     tags:
       - "v*"
 
+concurrency:
+  group: publish-runtimes
+  cancel-in-progress: false
+
 env:
   REGISTRY: ghcr.io
-  # Docker rejects uppercase in a repository name, and the agent's contracts
-  # already pull from ghcr.io/nellyxcloud/runtimes.
   OWNER: nellyxcloud
   IMAGE_PREFIX: runtimes
 
@@ -31,7 +34,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     strategy:
       fail-fast: false
       matrix:
@@ -40,20 +42,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The tag is derived from the Dockerfile's own ARG default rather than
-      # duplicated here, so bumping a version in one place is enough.
+      # The tag is derived from the Dockerfile's TAG_VERSION arg, so bumping
+      # a line in one place is enough.
       - name: Resolve tag
         id: meta
         env:
           RUNTIME_DIR: ${{ matrix.runtime }}
         run: |
           set -euo pipefail
-          arg=$(grep -Eo '^ARG [A-Z_]*VERSION=[0-9.]+' "$RUNTIME_DIR/Dockerfile" | head -1 | cut -d= -f2)
+          arg=$(grep -Eo '^ARG TAG_VERSION=[0-9.]+' "$RUNTIME_DIR/Dockerfile" | head -1 | cut -d= -f2)
           if [ -z "$arg" ]; then
-            echo "no VERSION arg in $RUNTIME_DIR/Dockerfile" >&2
+            echo "no TAG_VERSION arg in $RUNTIME_DIR/Dockerfile" >&2
             exit 1
           fi
           echo "version=${arg}" >> "$GITHUB_OUTPUT"
+
+      # Deno has no floating 2.x tag, so resolve the latest 2.x release from
+      # the registry at build time instead of pinning a patch in the repo.
+      - name: Resolve Deno version
+        id: deno
+        if: matrix.runtime == 'deno'
+        run: |
+          set -euo pipefail
+          ver=$(curl -fsSL "https://hub.docker.com/v2/repositories/denoland/deno/tags?page_size=100" | jq -r '.results[].name' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$ver" ]; then
+            echo "failed to resolve a Deno version" >&2
+            exit 1
+          fi
+          echo "version=${ver}" >> "$GITHUB_OUTPUT"
+          echo "Resolved Deno ${ver}"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -70,10 +87,12 @@ jobs:
           context: .
           file: ${{ matrix.runtime }}/Dockerfile
           push: true
+          build-args: ${{ matrix.runtime == 'deno' && format('DENO_VERSION={0}', steps.deno.outputs.version) || '' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_PREFIX }}:${{ matrix.runtime }}-${{ steps.meta.outputs.version }}
           labels: |
             org.opencontainers.image.title=${{ matrix.runtime }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
             org.opencontainers.image.source=${{ github.serverUrl }}/${{ github.repository }}
           cache-from: type=gha,scope=${{ matrix.runtime }}
           cache-to: type=gha,mode=max,scope=${{ matrix.runtime }}
@@ -81,23 +100,4 @@ jobs:
       # A published image that cannot run a service is worse than a failed build:
       # nodes would pull it and every service on that runtime would exit.
       - name: Smoke test
-        run: |
-          set -euo pipefail
-          image="${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_PREFIX }}:${{ matrix.runtime }}-${{ steps.meta.outputs.version }}"
-          case "${{ matrix.runtime }}" in
-            static) start="true" ;;
-            *)      start="node -e 'require(\"http\").createServer((q,s)=>s.end(\"ok\")).listen(process.env.PORT||3000)' 2>/dev/null || python3 -c 'import os,http.server;s=http.server.HTTPServer((\"0.0.0.0\",int(os.environ.get(\"PORT\",3000))),http.server.BaseHTTPRequestHandler);s.serve_forever()'" ;;
-          esac
-          docker run -d --name smoke -e START_COMMAND="$start" -e PORT=3000 -p 127.0.0.1:3000:3000 "$image"
-          for _ in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:3000 >/dev/null 2>&1; then
-              echo "${{ matrix.runtime }} responds"
-              docker rm -f smoke
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "${{ matrix.runtime }} did not answer; container log:" >&2
-          docker logs smoke >&2
-          docker rm -f smoke
-          exit 1
+        run: ./scripts/smoke.sh ${{ matrix.runtime }} ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_PREFIX }}:${{ matrix.runtime }}-${{ steps.meta.outputs.version }}
