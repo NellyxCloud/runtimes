@@ -8,6 +8,7 @@ image="$2"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 start="$tmpdir/start.sh"
+mkdir -p "$tmpdir/app"
 
 port=3000
 [ "$runtime" = "static" ] && port=8080
@@ -56,6 +57,8 @@ exec php -S 0.0.0.0:"${PORT:-3000}" -t /tmp
 EOF
     ;;
   static)
+    mkdir -p "$tmpdir/app"
+    printf 'ok' > "$tmpdir/app/index.html"
     cat >"$start" <<'EOF'
 #!/bin/sh
 exec nginx -g 'daemon off;'
@@ -71,6 +74,7 @@ chmod +x "$start"
 
 docker run -d --name smoke \
   -v "$start:/tmp/start.sh:ro" \
+  -v "$tmpdir/app:/home/nellyx/app:ro" \
   -e "START_COMMAND=sh /tmp/start.sh" \
   -e "PORT=$port" \
   -p 127.0.0.1:$port:$port \
